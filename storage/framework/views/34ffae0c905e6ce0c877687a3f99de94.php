@@ -57,116 +57,146 @@
         </div>
     </div>
 
-    <!-- Lessons Section -->
+    <!-- Current Lesson Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="mb-4">Lessons</h2>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Current Lesson</h2>
+                <div>
+                    <span class="badge bg-primary px-3 py-2"><?php echo e(count($lessons)); ?> total lessons</span>
+                </div>
+            </div>
+            <p class="text-muted mt-2">Complete this lesson to unlock the next one</p>
         </div>
     </div>
 
     <div class="row mb-5">
         <div class="col-12">
-            <?php if($progress['status'] == 'not_started' && $progress['completion_percentage'] == 0): ?>
-                <!-- Module not started -->
-                <div class="alert alert-secondary">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Start this module to begin your learning journey.
-                </div>
-            <?php endif; ?>
-            
             <?php
-                // Group lessons by skill
-                $lessonsBySkill = [];
-                foreach($lessons as $lesson) {
-                    $skillName = $lesson['skill_name'] ?? 'General';
-                    if (!isset($lessonsBySkill[$skillName])) {
-                        $lessonsBySkill[$skillName] = [];
-                    }
-                    $lessonsBySkill[$skillName][] = $lesson;
+                // Determine current lesson (first incomplete or active lesson)
+                $currentLesson = null;
+                $currentLessonIndex = 0;
+                $currentSkill = 'General';
+                $progress = 0;
+                
+                if ($activeLesson !== null) {
+                    $currentLesson = $lessons[$activeLesson];
+                    $currentLessonIndex = $activeLesson;
+                    $currentSkill = $currentLesson['skill_name'] ?? 'General';
+                    $progress = ($currentLessonIndex / count($lessons)) * 100;
+                } else {
+                    // If no active lesson defined, use first lesson
+                    $currentLesson = $lessons[0] ?? null;
+                    $currentSkill = $currentLesson['skill_name'] ?? 'General';
+                }
+                
+                // Determine if there's a next lesson
+                $hasNextLesson = $currentLessonIndex < count($lessons) - 1;
+                $nextLessonIndex = $currentLessonIndex + 1;
+                $nextLesson = $hasNextLesson ? $lessons[$nextLessonIndex] : null;
+                
+                // Determine if there are completed lessons
+                $completedLessons = array_filter($lessons, function($lesson) {
+                    return $lesson['is_completed'] ?? false;
+                });
+                $completedCount = count($completedLessons);
+                
+                // Calculate total progress
+                $moduleProgress = $completedCount > 0 ? ($completedCount / count($lessons)) * 100 : 0;
+                
+                if ($currentLesson) {
+                    $isCompleted = $currentLesson['is_completed'] ?? false;
+                    $isDefault = isset($currentLesson['is_default']) && $currentLesson['is_default'];
+                    $lessonNumber = $currentLessonIndex + 1;
                 }
             ?>
             
-            <div class="accordion" id="skillsAccordion">
-                <?php $__currentLoopData = $lessonsBySkill; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $skillName => $skillLessons): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="accordion-item border mb-3 shadow-sm">
-                        <h2 class="accordion-header" id="heading-<?php echo e(\Illuminate\Support\Str::slug($skillName)); ?>">
-                            <button class="accordion-button <?php echo e($loop->first ? '' : 'collapsed'); ?>" type="button" data-bs-toggle="collapse" 
-                                data-bs-target="#collapse-<?php echo e(\Illuminate\Support\Str::slug($skillName)); ?>" 
-                                aria-expanded="<?php echo e($loop->first ? 'true' : 'false'); ?>" 
-                                aria-controls="collapse-<?php echo e(\Illuminate\Support\Str::slug($skillName)); ?>">
-                                <strong><?php echo e($skillName); ?> Skill</strong>
-                                <span class="badge bg-primary ms-2"><?php echo e(count($skillLessons)); ?> lesson(s)</span>
-                            </button>
-                        </h2>
-                        <div id="collapse-<?php echo e(\Illuminate\Support\Str::slug($skillName)); ?>" class="accordion-collapse collapse <?php echo e($loop->first ? 'show' : ''); ?>" 
-                            aria-labelledby="heading-<?php echo e(\Illuminate\Support\Str::slug($skillName)); ?>" 
-                            data-bs-parent="#skillsAccordion">
-                            <div class="accordion-body p-0">
-                                <div class="list-group list-group-flush">
-                                    <?php $__currentLoopData = $skillLessons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $lesson): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php
-                                            $isCompleted = $lesson['is_completed'];
-                                            $isDefault = isset($lesson['is_default']) && $lesson['is_default'];
-                                            $lessonNumber = array_search($lesson, $lessons) + 1;
-                                            
-                                            // Only first lesson is active for new users, or specifically marked active ones
-                                            $isActive = ($activeLesson !== null && $lessons[$activeLesson]['id'] == $lesson['id']);
-                                            
-                                            // First lesson in first skill is always available
-                                            if ($loop->parent->first && $loop->first) {
-                                                $isLocked = false;
-                                            } else {
-                                                $isLocked = !$isCompleted && !$isActive;
-                                            }
-                                        ?>
-                                        
-                                        <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center
-                                            <?php echo e($isActive ? 'active' : ''); ?> 
-                                            <?php echo e($isLocked ? 'disabled' : ''); ?>">
-                                            <div>
-                                                <h5 class="mb-1">Lesson <?php echo e($lessonNumber); ?>: <?php echo e($lesson['title']); ?></h5>
-                                                <p class="mb-1 <?php echo e(!$isActive ? 'text-muted' : ''); ?>"><?php echo e($lesson['description']); ?></p>
-                                                
-                                                <?php if($isCompleted): ?>
-                                                    <span class="badge bg-success">Completed</span>
-                                                <?php elseif($isActive): ?>
-                                                    <span class="badge bg-primary">In Progress</span>
-                                                <?php elseif($isLocked): ?>
-                                                    <span class="badge bg-secondary">Locked</span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-warning">Available</span>
-                                                <?php endif; ?>
-                                                
-                                                <?php if($isDefault): ?>
-                                                    <span class="badge bg-info ms-1">Default Content</span>
-                                                <?php endif; ?>
-                                            </div>
-                                            
-                                            <?php if($isCompleted): ?>
-                                                <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                                            <?php elseif($isActive): ?>
-                                                <i class="bi bi-lightning-fill text-warning fs-4"></i>
-                                            <?php elseif($isLocked): ?>
-                                                <i class="bi bi-lock-fill text-secondary fs-4"></i>
-                                            <?php else: ?>
-                                                <i class="bi bi-play-circle text-primary fs-4"></i>
-                                            <?php endif; ?>
-                                        </a>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            <?php if(count($lessons) == 0): ?>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No lessons available for this module yet.
+                </div>
+            <?php elseif($currentLesson): ?>
+                <div class="card shadow-sm border-primary" style="border-width: 2px;">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <span class="badge bg-primary me-2">Lesson <?php echo e($lessonNumber); ?> of <?php echo e(count($lessons)); ?></span>
+                            <span class="badge bg-info"><?php echo e($currentSkill); ?> Skill</span>
+                        </div>
+                        <?php if($isCompleted): ?>
+                            <span class="badge bg-success px-3 py-2">Completed</span>
+                        <?php else: ?>
+                            <span class="badge bg-warning px-3 py-2">In Progress</span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="card-body p-4">
+                        <h3 class="card-title"><?php echo e($currentLesson['title']); ?></h3>
+                        <p class="lead"><?php echo e($currentLesson['description']); ?></p>
+                        
+                        <div class="my-4">
+                            <h5>Lesson Content</h5>
+                            <p>This is where detailed lesson content would appear. This could include text, images, videos, and interactive exercises to help you learn and practice this DBT skill.</p>
+                            
+                            <?php if($isDefault): ?>
+                                <div class="alert alert-info mt-3">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    This is placeholder content. Real lesson content will be available soon.
+                                </div>
+                            <?php endif; ?>
+                            
+                            <hr class="my-4">
+                            
+                            <h5>Practice Exercise</h5>
+                            <p>Complete this exercise to practice what you've learned:</p>
+                            <div class="card bg-light mt-3">
+                                <div class="card-body">
+                                    <p>Write down a situation where you could apply this skill in your daily life.</p>
+                                    <textarea class="form-control" rows="4" placeholder="Enter your response here..."></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </div>
-                
-                <?php if(count($lessons) == 0): ?>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        No lessons available for this module yet.
+                    <div class="card-footer bg-transparent d-flex justify-content-between py-3">
+                        <button class="btn btn-outline-secondary" <?php if($currentLessonIndex == 0): ?> disabled <?php endif; ?>>
+                            <i class="bi bi-arrow-left me-1"></i> Previous Lesson
+                        </button>
+                        
+                        <?php if($isCompleted): ?>
+                            <?php if($hasNextLesson): ?>
+                                <a href="#" class="btn btn-primary">
+                                    <i class="bi bi-arrow-right me-1"></i> Next Lesson
+                                </a>
+                            <?php else: ?>
+                                <a href="<?php echo e(route('modules.index')); ?>" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i> Module Complete
+                                </a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <button class="btn btn-success">
+                                <i class="bi bi-check-lg me-1"></i> Mark as Complete
+                            </button>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
-            </div>
+                </div>
+                
+                <!-- Lesson Navigation -->
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3">Your Progress</h5>
+                        <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                style="width: <?php echo e($moduleProgress); ?>%;" 
+                                aria-valuenow="<?php echo e($moduleProgress); ?>" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted"><?php echo e($completedCount); ?>/<?php echo e(count($lessons)); ?> lessons completed</small>
+                            <small class="text-muted"><?php echo e(round($moduleProgress)); ?>% complete</small>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
