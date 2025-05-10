@@ -37,6 +37,8 @@
     33 => 'App\\Providers\\RouteServiceProvider',
     34 => 'App\\Providers\\RepositoryServiceProvider',
     35 => 'App\\Providers\\CqrsServiceProvider',
+    36 => 'App\\Providers\\ContentServiceProvider',
+    37 => 'App\\Providers\\DbtCommandHandlerServiceProvider',
   ),
   'eager' => 
   array (
@@ -62,6 +64,8 @@
     19 => 'App\\Providers\\RouteServiceProvider',
     20 => 'App\\Providers\\RepositoryServiceProvider',
     21 => 'App\\Providers\\CqrsServiceProvider',
+    22 => 'App\\Providers\\ContentServiceProvider',
+    23 => 'App\\Providers\\DbtCommandHandlerServiceProvider',
   ),
   'deferred' => 
   array (

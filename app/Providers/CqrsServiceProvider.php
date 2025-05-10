@@ -9,10 +9,16 @@ use App\Application\Queries\QueryBus;
 // Command Handlers
 use App\Application\Commands\Handlers\CompleteLessonCommandHandler;
 use App\Application\Commands\Handlers\CreateDailyGoalCommandHandler;
+use App\Application\Commands\CreateLesson\CreateLessonHandler;
+use App\Application\Commands\CreateExercise\CreateExerciseHandler;
 
 // Query Handlers
 use App\Application\Queries\Handlers\GetUserProgressQueryHandler;
 use App\Application\Queries\Handlers\GetUserDailyGoalsQueryHandler;
+
+// Factories
+use App\Domain\Factories\LessonFactory;
+use App\Domain\Factories\ExerciseFactory;
 
 // Repositories
 use App\Domain\Repositories\UserRepositoryInterface;
@@ -39,6 +45,8 @@ class CqrsServiceProvider extends ServiceProvider
             // Register Command Handlers
             $commandBus->registerHandler($app->make(CompleteLessonCommandHandler::class));
             $commandBus->registerHandler($app->make(CreateDailyGoalCommandHandler::class));
+            $commandBus->registerHandler($app->make(CreateLessonHandler::class));
+            $commandBus->registerHandler($app->make(CreateExerciseHandler::class));
             
             // Add more command handlers here as needed
             
@@ -72,6 +80,20 @@ class CqrsServiceProvider extends ServiceProvider
             return new CreateDailyGoalCommandHandler(
                 $app->make(DailyGoalRepositoryInterface::class),
                 $app->make(UserRepositoryInterface::class)
+            );
+        });
+        
+        $this->app->bind(CreateLessonHandler::class, function ($app) {
+            return new CreateLessonHandler(
+                $app->make(LessonRepositoryInterface::class),
+                $app->make(LessonFactory::class)
+            );
+        });
+        
+        $this->app->bind(CreateExerciseHandler::class, function ($app) {
+            return new CreateExerciseHandler(
+                $app->make(ExerciseRepositoryInterface::class),
+                $app->make(ExerciseFactory::class)
             );
         });
 

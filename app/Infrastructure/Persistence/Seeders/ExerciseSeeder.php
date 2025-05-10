@@ -42,6 +42,16 @@ class ExerciseSeeder extends BaseSeeder
 
             $this->command->info("Seeding exercise ({$current}/{$total}): {$exerciseData['title']}");
             
+            // Check if exercise already exists (using lesson ID and order as unique identifiers)
+            $existingExercise = \App\Domain\Models\Exercise::where('lesson_id', $lessonId)
+                ->where('order', $exerciseData['order'])
+                ->first();
+            
+            if ($existingExercise) {
+                $this->command->info("  - Exercise already exists, skipping");
+                continue;
+            }
+            
             // Create and dispatch the command
             $command = new CreateExerciseCommand(
                 lessonId: $lessonId,

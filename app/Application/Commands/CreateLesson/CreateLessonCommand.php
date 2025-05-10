@@ -66,4 +66,14 @@ class CreateLessonCommand implements CommandInterface
     {
         return $this->lessonDTO;
     }
+    
+    /**
+     * Get the command type (used for logging and tracing).
+     *
+     * @return string
+     */
+    public function getCommandType(): string
+    {
+        return 'create_lesson';
+    }
 }

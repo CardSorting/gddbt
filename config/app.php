@@ -198,6 +198,8 @@ return [
          */
         App\Providers\RepositoryServiceProvider::class,
         App\Providers\CqrsServiceProvider::class,
+        App\Providers\ContentServiceProvider::class,
+        App\Providers\DbtCommandHandlerServiceProvider::class,
 
     ],
 

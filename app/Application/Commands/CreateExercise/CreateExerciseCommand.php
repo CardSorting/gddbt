@@ -69,4 +69,14 @@ class CreateExerciseCommand implements CommandInterface
     {
         return $this->exerciseDTO;
     }
+    
+    /**
+     * Get the command type (used for logging and tracing).
+     *
+     * @return string
+     */
+    public function getCommandType(): string
+    {
+        return 'create_exercise';
+    }
 }

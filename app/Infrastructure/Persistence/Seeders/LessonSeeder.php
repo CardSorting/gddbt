@@ -42,6 +42,14 @@ class LessonSeeder extends BaseSeeder
 
             $this->command->info("Seeding lesson ({$current}/{$total}): {$lessonData['name']}");
             
+            // Check if lesson already exists
+            $existingLesson = \App\Domain\Models\Lesson::where('slug', $lessonData['slug'])->first();
+            
+            if ($existingLesson) {
+                $this->command->info("  - Lesson already exists, skipping");
+                continue;
+            }
+            
             // Create and dispatch the command
             $command = new CreateLessonCommand(
                 skillId: $skillId,

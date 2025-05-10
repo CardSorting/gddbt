@@ -10,6 +10,7 @@ abstract class BaseSeeder extends Seeder
 {
     protected ContentProviderInterface $contentProvider;
     protected CommandBus $commandBus;
+    protected $command;
 
     /**
      * Create a new seeder instance.
@@ -23,6 +24,18 @@ abstract class BaseSeeder extends Seeder
     ) {
         $this->contentProvider = $contentProvider;
         $this->commandBus = $commandBus;
+    }
+
+    /**
+     * Set the console command instance.
+     *
+     * @param \Illuminate\Console\Command $command
+     * @return $this
+     */
+    public function setCommand($command)
+    {
+        $this->command = $command;
+        return $this;
     }
 
     /**
