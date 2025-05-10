@@ -48,10 +48,15 @@ class LessonRepository implements LessonRepositoryInterface
      */
     public function all(): array
     {
-        return Lesson::orderBy('skill_id')
-            ->orderBy('order')
-            ->get()
-            ->all();
+        try {
+            return Lesson::orderBy('skill_id')
+                ->orderBy('order')
+                ->get()
+                ->all();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving all lessons: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -63,15 +68,20 @@ class LessonRepository implements LessonRepositoryInterface
      */
     public function getBySkill(int $skillId, bool $activeOnly = true): array
     {
-        $query = Lesson::where('skill_id', $skillId);
-        
-        if ($activeOnly) {
-            $query->where('is_active', true);
+        try {
+            $query = Lesson::where('skill_id', $skillId);
+            
+            if ($activeOnly) {
+                $query->where('is_active', true);
+            }
+            
+            return $query->orderBy('order')
+                ->get()
+                ->all();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving lessons by skill: ' . $e->getMessage());
+            return [];
         }
-        
-        return $query->orderBy('order')
-            ->get()
-            ->all();
     }
 
     /**
@@ -83,21 +93,26 @@ class LessonRepository implements LessonRepositoryInterface
      */
     public function getWithExercises(int $skillId, bool $activeOnly = true): array
     {
-        $query = Lesson::with(['exercises' => function ($query) use ($activeOnly) {
+        try {
+            $query = Lesson::with(['exercises' => function ($query) use ($activeOnly) {
+                if ($activeOnly) {
+                    $query->where('is_active', true);
+                }
+                $query->orderBy('order');
+            }])
+            ->where('skill_id', $skillId);
+            
             if ($activeOnly) {
                 $query->where('is_active', true);
             }
-            $query->orderBy('order');
-        }])
-        ->where('skill_id', $skillId);
-        
-        if ($activeOnly) {
-            $query->where('is_active', true);
+            
+            return $query->orderBy('order')
+                ->get()
+                ->all();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving lessons with exercises: ' . $e->getMessage());
+            return [];
         }
-        
-        return $query->orderBy('order')
-            ->get()
-            ->all();
     }
 
     /**
@@ -131,34 +146,39 @@ class LessonRepository implements LessonRepositoryInterface
      */
     public function getNextLesson(int $currentLessonId): ?Lesson
     {
-        $currentLesson = $this->find($currentLessonId);
-        if (!$currentLesson) {
+        try {
+            $currentLesson = $this->find($currentLessonId);
+            if (!$currentLesson) {
+                return null;
+            }
+
+            // Try to find the next lesson in the same skill
+            $nextLesson = Lesson::where('skill_id', $currentLesson->skill_id)
+                ->where('order', '>', $currentLesson->order)
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->first();
+
+            if ($nextLesson) {
+                return $nextLesson;
+            }
+
+            // If no next lesson in the same skill, find the first lesson in the next skill
+            $skillRepo = new SkillRepository();
+            $nextSkill = $skillRepo->getNextSkill($currentLesson->skill_id);
+            
+            if (!$nextSkill) {
+                return null;
+            }
+
+            return Lesson::where('skill_id', $nextSkill->id)
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->first();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving next lesson: ' . $e->getMessage());
             return null;
         }
-
-        // Try to find the next lesson in the same skill
-        $nextLesson = Lesson::where('skill_id', $currentLesson->skill_id)
-            ->where('order', '>', $currentLesson->order)
-            ->where('is_active', true)
-            ->orderBy('order')
-            ->first();
-
-        if ($nextLesson) {
-            return $nextLesson;
-        }
-
-        // If no next lesson in the same skill, find the first lesson in the next skill
-        $skillRepo = new SkillRepository();
-        $nextSkill = $skillRepo->getNextSkill($currentLesson->skill_id);
-        
-        if (!$nextSkill) {
-            return null;
-        }
-
-        return Lesson::where('skill_id', $nextSkill->id)
-            ->where('is_active', true)
-            ->orderBy('order')
-            ->first();
     }
 
     /**
@@ -170,21 +190,26 @@ class LessonRepository implements LessonRepositoryInterface
      */
     public function getCompletedByUser(int $userId, ?int $skillId = null): array
     {
-        $query = Lesson::join('user_lesson_completions', 'lessons.id', '=', 'user_lesson_completions.lesson_id')
-            ->where('user_lesson_completions.user_id', $userId);
-        
-        if ($skillId) {
-            $query->where('lessons.skill_id', $skillId);
+        try {
+            $query = Lesson::join('user_lesson_completions', 'lessons.id', '=', 'user_lesson_completions.lesson_id')
+                ->where('user_lesson_completions.user_id', $userId);
+            
+            if ($skillId) {
+                $query->where('lessons.skill_id', $skillId);
+            }
+            
+            return $query->select(
+                    'lessons.*',
+                    'user_lesson_completions.completed_at',
+                    'user_lesson_completions.score'
+                )
+                ->orderBy('user_lesson_completions.completed_at', 'desc')
+                ->get()
+                ->all();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving completed lessons: ' . $e->getMessage());
+            return [];
         }
-        
-        return $query->select(
-                'lessons.*',
-                'user_lesson_completions.completed_at',
-                'user_lesson_completions.score'
-            )
-            ->orderBy('user_lesson_completions.completed_at', 'desc')
-            ->get()
-            ->all();
     }
 
     /**
@@ -196,47 +221,52 @@ class LessonRepository implements LessonRepositoryInterface
      */
     public function getRecommendedForUser(int $userId, int $limit = 3): array
     {
-        // Get lessons from skills that are unlocked but not completed
-        $subquery = DB::table('user_progress')
-            ->where('user_id', $userId)
-            ->where('completion_percentage', '<', 100)
-            ->select('skill_id');
-            
-        $lessons = Lesson::whereIn('skill_id', $subquery)
-            ->whereNotIn('id', function ($query) use ($userId) {
-                $query->select('lesson_id')
-                    ->from('user_lesson_completions')
-                    ->where('user_id', $userId);
-            })
-            ->where('is_active', true)
-            ->limit($limit)
-            ->get();
-            
-        // If we couldn't find enough lessons, get lessons from skills the user hasn't started yet
-        if (count($lessons) < $limit) {
-            $remainingCount = $limit - count($lessons);
-            
-            $completedSkills = DB::table('user_progress')
+        try {
+            // Get lessons from skills that are unlocked but not completed
+            $subquery = DB::table('user_progress')
                 ->where('user_id', $userId)
+                ->where('completion_percentage', '<', 100)
                 ->select('skill_id');
                 
-            $newLessons = Lesson::whereNotIn('skill_id', $completedSkills)
-                ->where('is_active', true)
-                ->whereIn('skill_id', function ($query) use ($userId) {
-                    $query->select('id')
-                        ->from('skills')
-                        ->where('is_active', true)
-                        ->whereRaw('(prerequisites IS NULL OR JSON_LENGTH(prerequisites) = 0)');
+            $lessons = Lesson::whereIn('skill_id', $subquery)
+                ->whereNotIn('id', function ($query) use ($userId) {
+                    $query->select('lesson_id')
+                        ->from('user_lesson_completions')
+                        ->where('user_id', $userId);
                 })
-                ->orderBy('skill_id')
-                ->orderBy('order')
-                ->limit($remainingCount)
+                ->where('is_active', true)
+                ->limit($limit)
                 ->get();
                 
-            $lessons = $lessons->merge($newLessons);
+            // If we couldn't find enough lessons, get lessons from skills the user hasn't started yet
+            if (count($lessons) < $limit) {
+                $remainingCount = $limit - count($lessons);
+                
+                $completedSkills = DB::table('user_progress')
+                    ->where('user_id', $userId)
+                    ->select('skill_id');
+                    
+                $newLessons = Lesson::whereNotIn('skill_id', $completedSkills)
+                    ->where('is_active', true)
+                    ->whereIn('skill_id', function ($query) use ($userId) {
+                        $query->select('id')
+                            ->from('skills')
+                            ->where('is_active', true)
+                            ->whereRaw('(prerequisites IS NULL OR JSON_LENGTH(prerequisites) = 0)');
+                    })
+                    ->orderBy('skill_id')
+                    ->orderBy('order')
+                    ->limit($remainingCount)
+                    ->get();
+                    
+                $lessons = $lessons->merge($newLessons);
+            }
+            
+            return $lessons->all();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving recommended lessons: ' . $e->getMessage());
+            return [];
         }
-        
-        return $lessons->all();
     }
 
     /**
@@ -250,40 +280,45 @@ class LessonRepository implements LessonRepositoryInterface
      */
     public function recordCompletion(int $userId, int $lessonId, int $score, $completedAt = null): bool
     {
-        if ($completedAt === null) {
-            $completedAt = now();
-        }
+        try {
+            if ($completedAt === null) {
+                $completedAt = now();
+            }
 
-        $completion = DB::table('user_lesson_completions')
-            ->where('user_id', $userId)
-            ->where('lesson_id', $lessonId)
-            ->first();
+            $completion = DB::table('user_lesson_completions')
+                ->where('user_id', $userId)
+                ->where('lesson_id', $lessonId)
+                ->first();
 
-        if ($completion) {
-            // If the lesson was already completed, update the record only if the new score is higher
-            if ($score > $completion->score) {
+            if ($completion) {
+                // If the lesson was already completed, update the record only if the new score is higher
+                if ($score > $completion->score) {
+                    DB::table('user_lesson_completions')
+                        ->where('user_id', $userId)
+                        ->where('lesson_id', $lessonId)
+                        ->update([
+                            'score' => $score,
+                            'completed_at' => $completedAt,
+                            'updated_at' => now(),
+                        ]);
+                }
+            } else {
+                // If the lesson wasn't completed before, create a new record
                 DB::table('user_lesson_completions')
-                    ->where('user_id', $userId)
-                    ->where('lesson_id', $lessonId)
-                    ->update([
+                    ->insert([
+                        'user_id' => $userId,
+                        'lesson_id' => $lessonId,
                         'score' => $score,
                         'completed_at' => $completedAt,
+                        'created_at' => now(),
                         'updated_at' => now(),
                     ]);
             }
-        } else {
-            // If the lesson wasn't completed before, create a new record
-            DB::table('user_lesson_completions')
-                ->insert([
-                    'user_id' => $userId,
-                    'lesson_id' => $lessonId,
-                    'score' => $score,
-                    'completed_at' => $completedAt,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-        }
 
-        return true;
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Error recording lesson completion: ' . $e->getMessage());
+            return false;
+        }
     }
 }

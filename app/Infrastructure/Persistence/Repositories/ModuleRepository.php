@@ -38,7 +38,21 @@ class ModuleRepository implements ModuleRepositoryInterface
      */
     public function findBySlug(string $slug): ?Module
     {
-        return Module::where('slug', $slug)->first();
+        // First try direct slug match with eager loading
+        $module = Module::with(['skills.lessons'])
+            ->where('slug', $slug)
+            ->first();
+        
+        if (!$module) {
+            // Try matching by converting name to slug format
+            $module = Module::with(['skills.lessons'])
+                ->get()
+                ->first(function($m) use ($slug) {
+                    return strtolower(str_replace(' ', '-', $m->name)) === $slug;
+                });
+        }
+        
+        return $module;
     }
 
     /**
@@ -49,6 +63,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     public function all(): array
     {
         try {
+            // Use standard orderBy for better cross-database compatibility
             $modules = Module::orderBy('order')->get();
             return $modules ? $modules->all() : [];
         } catch (\Exception $e) {
@@ -66,10 +81,18 @@ class ModuleRepository implements ModuleRepositoryInterface
      */
     public function getAllActive(): array
     {
-        return Module::where('is_active', true)
-            ->orderBy('order')
-            ->get()
-            ->all();
+        try {
+            // Use correct PostgreSQL syntax for reserved keywords
+            return Module::where('is_active', true)
+                ->orderBy('order')  // Using standard orderBy instead of orderByRaw
+                ->get()
+                ->all();
+        } catch (\Exception $e) {
+            // Log the error but return a valid empty array
+            // to prevent null being returned
+            \Log::error('Error retrieving active modules: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -80,18 +103,23 @@ class ModuleRepository implements ModuleRepositoryInterface
      */
     public function getAllWithSkills(bool $activeOnly = true): array
     {
-        $query = Module::with(['skills' => function ($query) use ($activeOnly) {
+        try {
+            $query = Module::with(['skills' => function ($query) use ($activeOnly) {
+                if ($activeOnly) {
+                    $query->where('is_active', true);
+                }
+                $query->orderBy('order');
+            }]);
+
             if ($activeOnly) {
                 $query->where('is_active', true);
             }
-            $query->orderBy('order');
-        }]);
 
-        if ($activeOnly) {
-            $query->where('is_active', true);
+            return $query->orderBy('order')->get()->all();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving modules with skills: ' . $e->getMessage());
+            return [];
         }
-
-        return $query->orderBy('order')->get()->all();
     }
 
     /**
@@ -125,15 +153,20 @@ class ModuleRepository implements ModuleRepositoryInterface
      */
     public function getNextModule(int $currentModuleId): ?Module
     {
-        $currentModule = $this->find($currentModuleId);
-        if (!$currentModule) {
+        try {
+            $currentModule = $this->find($currentModuleId);
+            if (!$currentModule) {
+                return null;
+            }
+
+            return Module::where('order', '>', $currentModule->order)
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->first();
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving next module: ' . $e->getMessage());
             return null;
         }
-
-        return Module::where('order', '>', $currentModule->order)
-            ->where('is_active', true)
-            ->orderBy('order')
-            ->first();
     }
 
     /**
@@ -144,23 +177,28 @@ class ModuleRepository implements ModuleRepositoryInterface
      */
     public function getModulesWithUserProgress(int $userId): array
     {
-        $modules = $this->getAllActive();
-        
-        // Enhance each module with progress information
-        return array_map(function ($module) use ($userId) {
-            $completionPercentage = $module->getCompletionPercentage($userId);
+        try {
+            $modules = $this->getAllActive();
             
-            return [
-                'id' => $module->id,
-                'name' => $module->name,
-                'slug' => $module->slug,
-                'description' => $module->description,
-                'icon' => $module->icon,
-                'order' => $module->order,
-                'color_code' => $module->color_code,
-                'progress' => $completionPercentage,
-                'total_xp' => $module->getTotalXp(),
-            ];
-        }, $modules);
+            // Enhance each module with progress information
+            return array_map(function ($module) use ($userId) {
+                $completionPercentage = $module->getCompletionPercentage($userId);
+                
+                return [
+                    'id' => $module->id,
+                    'name' => $module->name,
+                    'slug' => $module->slug,
+                    'description' => $module->description,
+                    'icon' => $module->icon,
+                    'order' => $module->order,
+                    'color_code' => $module->color_code,
+                    'progress' => $completionPercentage,
+                    'total_xp' => $module->getTotalXp(),
+                ];
+            }, $modules);
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving modules with user progress: ' . $e->getMessage());
+            return [];
+        }
     }
 }

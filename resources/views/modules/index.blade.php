@@ -18,11 +18,14 @@
                 <div class="card-body p-4">
                     <h5 class="mb-3">Your Progress</h5>
                     <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: {{ $overall_progress['completion_percentage'] }}%;" 
+                             aria-valuenow="{{ $overall_progress['completion_percentage'] }}" 
+                             aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <div class="d-flex justify-content-between mt-2">
-                        <small class="text-muted">1/4 modules completed</small>
-                        <small class="text-muted">25% complete</small>
+                        <small class="text-muted">{{ $overall_progress['completed_count'] }}/{{ $overall_progress['total_count'] }} modules completed</small>
+                        <small class="text-muted">{{ $overall_progress['completion_percentage'] }}% complete</small>
                     </div>
                 </div>
             </div>
@@ -30,89 +33,49 @@
     </div>
 
     <div class="row g-4">
-        <!-- Mindfulness Module -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-success px-3 py-2">Completed</span>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </div>
-                    <h4 class="card-title">Mindfulness</h4>
-                    <p class="card-text text-muted">Learn to be fully aware and present in this moment.</p>
-                    <div class="progress mb-3" style="height: 8px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <small class="text-muted">5/5 lessons completed</small>
-                    <div class="mt-4">
-                        <a href="{{ route('modules.show', 'mindfulness') }}" class="btn btn-outline-primary w-100">Review Module</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Emotion Regulation Module -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-warning px-3 py-2">In Progress</span>
-                        <i class="bi bi-lightning-fill text-warning fs-4"></i>
-                    </div>
-                    <h4 class="card-title">Emotion Regulation</h4>
-                    <p class="card-text text-muted">Understand and manage your emotions effectively.</p>
-                    <div class="progress mb-3" style="height: 8px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <small class="text-muted">3/5 lessons completed</small>
-                    <div class="mt-4">
-                        <a href="{{ route('modules.show', 'emotion-regulation') }}" class="btn btn-primary w-100">Continue Module</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Distress Tolerance Module -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-secondary px-3 py-2">Locked</span>
-                        <i class="bi bi-lock-fill text-secondary fs-4"></i>
-                    </div>
-                    <h4 class="card-title">Distress Tolerance</h4>
-                    <p class="card-text text-muted">Survive and tolerate crisis without making it worse.</p>
-                    <div class="progress mb-3" style="height: 8px;">
-                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <small class="text-muted">0/5 lessons completed</small>
-                    <div class="mt-4">
-                        <button class="btn btn-secondary w-100" disabled>Complete Previous Module</button>
+        @foreach($modules as $module)
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            @if($module['status'] == 'completed')
+                                <span class="badge bg-success px-3 py-2">Completed</span>
+                                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                            @elseif($module['status'] == 'in_progress')
+                                <span class="badge bg-warning px-3 py-2">In Progress</span>
+                                <i class="bi bi-lightning-fill text-warning fs-4"></i>
+                            @else
+                                <span class="badge bg-secondary px-3 py-2">Locked</span>
+                                <i class="bi bi-lock-fill text-secondary fs-4"></i>
+                            @endif
+                        </div>
+                        <h4 class="card-title">{{ $module['name'] }}</h4>
+                        <p class="card-text text-muted">{{ $module['description'] }}</p>
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar 
+                                @if($module['status'] == 'completed') bg-success 
+                                @elseif($module['status'] == 'in_progress') bg-warning 
+                                @else bg-secondary @endif" 
+                                role="progressbar" 
+                                style="width: {{ $module['completion_percentage'] }}%;" 
+                                aria-valuenow="{{ $module['completion_percentage'] }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">{{ $module['completed_lessons_count'] }}/{{ $module['total_lessons_count'] }} lessons completed</small>
+                        <div class="mt-4">
+                            @if($module['status'] == 'completed')
+                                <a href="{{ route('modules.show', $module['slug']) }}" class="btn btn-outline-primary w-100">Review Module</a>
+                            @elseif($module['status'] == 'in_progress')
+                                <a href="{{ route('modules.show', $module['slug']) }}" class="btn btn-primary w-100">Continue Module</a>
+                            @else
+                                <button class="btn btn-secondary w-100" disabled>Complete Previous Module</button>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Interpersonal Effectiveness Module -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-secondary px-3 py-2">Locked</span>
-                        <i class="bi bi-lock-fill text-secondary fs-4"></i>
-                    </div>
-                    <h4 class="card-title">Interpersonal Effectiveness</h4>
-                    <p class="card-text text-muted">Navigate interpersonal interactions and maintain relationships.</p>
-                    <div class="progress mb-3" style="height: 8px;">
-                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <small class="text-muted">0/5 lessons completed</small>
-                    <div class="mt-4">
-                        <button class="btn btn-secondary w-100" disabled>Complete Previous Module</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endforeach
     </div>
 
     <div class="row mt-5">

@@ -20,68 +20,40 @@
     <!-- Module Header -->
     <div class="row mb-5">
         <div class="col-md-8">
-            @if($module == 'mindfulness')
-                <h1 class="mb-3">Mindfulness Skills</h1>
-                <p class="lead text-muted mb-4">Learn to be fully aware and present in this moment, observing experiences with acceptance and without judgment.</p>
-                <div class="mb-4">
+            <h1 class="mb-3">{{ $moduleData->name }} Skills</h1>
+            <p class="lead text-muted mb-4">{{ $moduleData->description }}</p>
+            <div class="mb-4">
+                @if($progress['status'] == 'completed')
                     <span class="badge bg-success px-3 py-2 me-2">Completed</span>
-                    <span class="text-muted">Completed on May 2, 2025</span>
-                </div>
-            @elseif($module == 'emotion-regulation')
-                <h1 class="mb-3">Emotion Regulation Skills</h1>
-                <p class="lead text-muted mb-4">Understand emotions, reduce emotional vulnerability, and decrease emotional suffering.</p>
-                <div class="mb-4">
+                    <span class="text-muted">Completed on {{ $progress['last_activity_at'] ? $progress['last_activity_at']->format('F j, Y') : 'Unknown date' }}</span>
+                @elseif($progress['status'] == 'in_progress')
                     <span class="badge bg-warning px-3 py-2 me-2">In Progress</span>
-                    <span class="text-muted">60% complete</span>
-                </div>
-            @elseif($module == 'distress-tolerance')
-                <h1 class="mb-3">Distress Tolerance Skills</h1>
-                <p class="lead text-muted mb-4">Survive crisis situations without making them worse, and accept reality as it is in the moment.</p>
-                <div class="mb-4">
-                    <span class="badge bg-secondary px-3 py-2 me-2">Locked</span>
-                    <span class="text-muted">Complete Emotion Regulation to unlock</span>
-                </div>
-            @elseif($module == 'interpersonal-effectiveness')
-                <h1 class="mb-3">Interpersonal Effectiveness Skills</h1>
-                <p class="lead text-muted mb-4">Navigate relationships effectively, balance priorities against demands, and build mastery of social skills.</p>
-                <div class="mb-4">
-                    <span class="badge bg-secondary px-3 py-2 me-2">Locked</span>
-                    <span class="text-muted">Complete Distress Tolerance to unlock</span>
-                </div>
-            @else
-                <h1 class="mb-3">Module Details</h1>
-                <p class="lead text-muted mb-4">Detailed information about this DBT skill module.</p>
-            @endif
+                    <span class="text-muted">{{ $progress['completion_percentage'] }}% complete</span>
+                @else
+                    <span class="badge bg-secondary px-3 py-2 me-2">Not Started</span>
+                    <span class="text-muted">Begin your learning journey</span>
+                @endif
+            </div>
         </div>
         <div class="col-md-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <h5 class="mb-3">Module Progress</h5>
-                    @if($module == 'mindfulness')
-                        <div class="progress mb-3" style="height: 10px;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>5/5 lessons completed</span>
-                            <span>100%</span>
-                        </div>
-                    @elseif($module == 'emotion-regulation')
-                        <div class="progress mb-3" style="height: 10px;">
-                            <div class="progress-bar bg-warning" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>3/5 lessons completed</span>
-                            <span>60%</span>
-                        </div>
-                    @else
-                        <div class="progress mb-3" style="height: 10px;">
-                            <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>0/5 lessons completed</span>
-                            <span>0%</span>
-                        </div>
-                    @endif
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar 
+                            @if($progress['status'] == 'completed') bg-success 
+                            @elseif($progress['status'] == 'in_progress') bg-warning 
+                            @else bg-secondary @endif" 
+                            role="progressbar" 
+                            style="width: {{ $progress['completion_percentage'] }}%;" 
+                            aria-valuenow="{{ $progress['completion_percentage'] }}" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>{{ count($progress['completed_lessons']) }}/{{ count($lessons) }} lessons completed</span>
+                        <span>{{ $progress['completion_percentage'] }}%</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,150 +66,59 @@
         </div>
     </div>
 
-    @if($module == 'mindfulness')
-        <!-- Mindfulness Lessons -->
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="list-group">
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 1: Introduction to Mindfulness</h5>
-                            <p class="mb-1 text-muted">Learn the fundamentals of mindful awareness and its benefits.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 2: Wise Mind</h5>
-                            <p class="mb-1 text-muted">Discover the balance between emotional mind and reasonable mind.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 3: What Skills</h5>
-                            <p class="mb-1 text-muted">Learn to observe, describe, and participate in the present moment.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 4: How Skills</h5>
-                            <p class="mb-1 text-muted">Practice non-judgmentally, one-mindfully, and effectively.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 5: Mindfulness in Daily Life</h5>
-                            <p class="mb-1 text-muted">Apply mindfulness skills to everyday activities and challenges.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    @elseif($module == 'emotion-regulation')
-        <!-- Emotion Regulation Lessons -->
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="list-group">
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 1: Understanding Emotions</h5>
-                            <p class="mb-1 text-muted">Learn about the function and components of emotions.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 2: Identifying Emotions</h5>
-                            <p class="mb-1 text-muted">Learn to recognize and name your emotions.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Lesson 3: Reducing Vulnerability</h5>
-                            <p class="mb-1 text-muted">Build emotional resilience through physical and mental self-care.</p>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center active">
-                        <div>
-                            <h5 class="mb-1">Lesson 4: Changing Emotional Responses</h5>
-                            <p class="mb-1">Strategies for modifying emotional responses.</p>
-                            <span class="badge bg-primary">In Progress</span>
-                        </div>
-                        <i class="bi bi-lightning-fill fs-4"></i>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center disabled">
-                        <div>
-                            <h5 class="mb-1">Lesson 5: Managing Difficult Emotions</h5>
-                            <p class="mb-1 text-muted">Advanced techniques for working with challenging emotions.</p>
-                            <span class="badge bg-secondary">Locked</span>
-                        </div>
-                        <i class="bi bi-lock-fill text-secondary fs-4"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    @else
-        <!-- Other Modules (Locked) -->
-        <div class="row mb-5">
-            <div class="col-12">
+    <div class="row mb-5">
+        <div class="col-12">
+            @if($progress['status'] == 'not_started' && $progress['completion_percentage'] == 0)
+                <!-- Module not started -->
                 <div class="alert alert-secondary">
-                    <i class="bi bi-lock-fill me-2"></i>
-                    Complete previous modules to unlock this content.
+                    <i class="bi bi-info-circle me-2"></i>
+                    Start this module to begin your learning journey.
                 </div>
-                <div class="list-group opacity-75">
-                    <div class="list-group-item p-4">
+            @endif
+            
+            <div class="list-group">
+                @foreach($lessons as $index => $lesson)
+                    @php
+                        $isCompleted = $lesson['is_completed'];
+                        $isActive = ($activeLesson !== null && $index == $activeLesson);
+                        $isLocked = !$isCompleted && !$isActive;
+                    @endphp
+                    
+                    <a href="#" class="list-group-item list-group-item-action p-4 d-flex justify-content-between align-items-center
+                        {{ $isActive ? 'active' : '' }} 
+                        {{ $isLocked ? 'disabled' : '' }}">
                         <div>
-                            <h5 class="mb-1">Lesson 1</h5>
-                            <p class="mb-1 text-muted">This lesson is locked.</p>
-                            <span class="badge bg-secondary">Locked</span>
+                            <h5 class="mb-1">Lesson {{ $index + 1 }}: {{ $lesson['title'] }}</h5>
+                            <p class="mb-1 {{ !$isActive ? 'text-muted' : '' }}">{{ $lesson['description'] }}</p>
+                            
+                            @if($isCompleted)
+                                <span class="badge bg-success">Completed</span>
+                            @elseif($isActive)
+                                <span class="badge bg-primary">In Progress</span>
+                            @else
+                                <span class="badge bg-secondary">Locked</span>
+                            @endif
                         </div>
+                        
+                        @if($isCompleted)
+                            <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                        @elseif($isActive)
+                            <i class="bi bi-lightning-fill fs-4"></i>
+                        @else
+                            <i class="bi bi-lock-fill text-secondary fs-4"></i>
+                        @endif
+                    </a>
+                @endforeach
+                
+                @if(count($lessons) == 0)
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No lessons available for this module yet.
                     </div>
-                    <div class="list-group-item p-4">
-                        <div>
-                            <h5 class="mb-1">Lesson 2</h5>
-                            <p class="mb-1 text-muted">This lesson is locked.</p>
-                            <span class="badge bg-secondary">Locked</span>
-                        </div>
-                    </div>
-                    <div class="list-group-item p-4">
-                        <div>
-                            <h5 class="mb-1">Lesson 3</h5>
-                            <p class="mb-1 text-muted">This lesson is locked.</p>
-                            <span class="badge bg-secondary">Locked</span>
-                        </div>
-                    </div>
-                    <div class="list-group-item p-4">
-                        <div>
-                            <h5 class="mb-1">Lesson 4</h5>
-                            <p class="mb-1 text-muted">This lesson is locked.</p>
-                            <span class="badge bg-secondary">Locked</span>
-                        </div>
-                    </div>
-                    <div class="list-group-item p-4">
-                        <div>
-                            <h5 class="mb-1">Lesson 5</h5>
-                            <p class="mb-1 text-muted">This lesson is locked.</p>
-                            <span class="badge bg-secondary">Locked</span>
-                        </div>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
-    @endif
+    </div>
 
     <!-- Module Resources -->
     <div class="row mt-5">

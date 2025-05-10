@@ -23,6 +23,7 @@ use App\Domain\Repositories\ExerciseRepositoryInterface;
 use App\Domain\Repositories\UserProgressRepositoryInterface;
 use App\Domain\Repositories\StreakRepositoryInterface;
 use App\Domain\Repositories\AchievementRepositoryInterface;
+use App\Domain\Repositories\DailyGoalRepositoryInterface;
 
 class CqrsServiceProvider extends ServiceProvider
 {

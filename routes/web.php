@@ -39,13 +39,8 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
     
     // Module routes
-    Route::get('/modules', function () {
-        return view('modules.index');
-    })->name('modules.index');
-    
-    Route::get('/modules/{module}', function ($module) {
-        return view('modules.show', compact('module'));
-    })->name('modules.show');
+    Route::get('/modules', [App\Http\Controllers\ModulesController::class, 'index'])->name('modules.index');
+    Route::get('/modules/{module}', [App\Http\Controllers\ModulesController::class, 'show'])->name('modules.show');
     
     // Daily goals routes
     Route::get('/daily-goals', function () {
