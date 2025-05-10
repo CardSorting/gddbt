@@ -46,11 +46,25 @@ class LessonSeeder extends BaseSeeder
             $existingLesson = \App\Domain\Models\Lesson::where('slug', $lessonData['slug'])->first();
             
             if ($existingLesson) {
-                $this->command->info("  - Lesson already exists, skipping");
+                $this->command->info("  - Lesson already exists, updating content");
+                
+                // Update the existing lesson with new content
+                $existingLesson->name = $lessonData['name'];
+                $existingLesson->description = $lessonData['description'];
+                $existingLesson->content = $lessonData['content'];
+                $existingLesson->order = $lessonData['order'];
+                $existingLesson->duration_minutes = $lessonData['duration_minutes'];
+                $existingLesson->xp_reward = $lessonData['xp_reward'];
+                $existingLesson->is_active = $lessonData['is_active'] ?? true;
+                $existingLesson->is_premium = $lessonData['is_premium'] ?? false;
+                
+                // Save the updated lesson
+                $lessonRepository = new \App\Infrastructure\Persistence\Repositories\LessonRepository();
+                $lessonRepository->save($existingLesson);
                 continue;
             }
             
-            // Create and dispatch the command
+            // If lesson doesn't exist, create a new one
             $command = new CreateLessonCommand(
                 skillId: $skillId,
                 name: $lessonData['name'],
