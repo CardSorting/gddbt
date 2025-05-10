@@ -18,6 +18,17 @@ class SkillRepository implements SkillRepositoryInterface
     {
         return Skill::find($id);
     }
+    
+    /**
+     * Find multiple skills by their IDs.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return Skill::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find a skill by its slug.

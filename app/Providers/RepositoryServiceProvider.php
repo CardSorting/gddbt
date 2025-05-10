@@ -13,6 +13,7 @@ use App\Domain\Repositories\ExerciseRepositoryInterface;
 use App\Domain\Repositories\UserProgressRepositoryInterface;
 use App\Domain\Repositories\StreakRepositoryInterface;
 use App\Domain\Repositories\AchievementRepositoryInterface;
+use App\Domain\Repositories\DailyGoalRepositoryInterface;
 
 // Infrastructure implementations
 use App\Infrastructure\Persistence\Repositories\UserRepository;
@@ -23,6 +24,7 @@ use App\Infrastructure\Persistence\Repositories\ExerciseRepository;
 use App\Infrastructure\Persistence\Repositories\UserProgressRepository;
 use App\Infrastructure\Persistence\Repositories\StreakRepository;
 use App\Infrastructure\Persistence\Repositories\AchievementRepository;
+use App\Infrastructure\Persistence\Repositories\DailyGoalRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -40,6 +42,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(UserProgressRepositoryInterface::class, UserProgressRepository::class);
         $this->app->bind(StreakRepositoryInterface::class, StreakRepository::class);
         $this->app->bind(AchievementRepositoryInterface::class, AchievementRepository::class);
+        $this->app->bind(DailyGoalRepositoryInterface::class, DailyGoalRepository::class);
     }
 
     /**

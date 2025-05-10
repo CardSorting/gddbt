@@ -22,6 +22,10 @@ class User extends Authenticatable
         'xp_points',
         'level',
         'last_login_at',
+        'private_profile',
+        'share_streaks',
+        'share_progress',
+        'share_daily_goals',
     ];
 
     /**
@@ -43,6 +47,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'last_login_at' => 'datetime',
+        'private_profile' => 'boolean',
+        'share_streaks' => 'boolean',
+        'share_progress' => 'boolean',
+        'share_daily_goals' => 'boolean',
     ];
 
     /**
@@ -108,5 +116,109 @@ class User extends Authenticatable
         $this->save();
         
         return $oldLevel < $this->level;
+    }
+
+    /**
+     * Get all users that this user is following.
+     */
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'user_followers', 'follower_id', 'user_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get all users following this user.
+     */
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'user_followers', 'user_id', 'follower_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get the user's daily goals.
+     */
+    public function dailyGoals()
+    {
+        return $this->hasMany(DailyGoal::class);
+    }
+
+    /**
+     * Follow another user.
+     * 
+     * @param User $user
+     * @return bool
+     */
+    public function follow(User $user): bool
+    {
+        // Can't follow yourself
+        if ($this->id === $user->id) {
+            return false;
+        }
+
+        // If already following, return true
+        if ($this->following()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        $this->following()->attach($user->id);
+        return true;
+    }
+
+    /**
+     * Unfollow another user.
+     * 
+     * @param User $user
+     * @return bool
+     */
+    public function unfollow(User $user): bool
+    {
+        return (bool) $this->following()->detach($user->id);
+    }
+
+    /**
+     * Check if the user is following another user.
+     * 
+     * @param User $user
+     * @return bool
+     */
+    public function isFollowing(User $user): bool
+    {
+        return $this->following()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Determine if the user's profile is visible to another user.
+     * 
+     * @param User|null $viewer
+     * @return bool
+     */
+    public function isVisibleTo(?User $viewer): bool
+    {
+        // Always visible to self
+        if ($viewer && $viewer->id === $this->id) {
+            return true;
+        }
+
+        // If profile is private, only visible to followers
+        if ($this->private_profile) {
+            return $viewer && $this->followers()->where('follower_id', $viewer->id)->exists();
+        }
+
+        // Public profile is visible to everyone
+        return true;
+    }
+
+    /**
+     * Get today's daily goal for the user.
+     * 
+     * @return DailyGoal|null
+     */
+    public function getTodayGoal()
+    {
+        return $this->dailyGoals()
+                    ->whereDate('date', now()->toDateString())
+                    ->first();
     }
 }

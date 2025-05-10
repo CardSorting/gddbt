@@ -8,9 +8,11 @@ use App\Application\Queries\QueryBus;
 
 // Command Handlers
 use App\Application\Commands\Handlers\CompleteLessonCommandHandler;
+use App\Application\Commands\Handlers\CreateDailyGoalCommandHandler;
 
 // Query Handlers
 use App\Application\Queries\Handlers\GetUserProgressQueryHandler;
+use App\Application\Queries\Handlers\GetUserDailyGoalsQueryHandler;
 
 // Repositories
 use App\Domain\Repositories\UserRepositoryInterface;
@@ -35,6 +37,7 @@ class CqrsServiceProvider extends ServiceProvider
             
             // Register Command Handlers
             $commandBus->registerHandler($app->make(CompleteLessonCommandHandler::class));
+            $commandBus->registerHandler($app->make(CreateDailyGoalCommandHandler::class));
             
             // Add more command handlers here as needed
             
@@ -47,6 +50,7 @@ class CqrsServiceProvider extends ServiceProvider
             
             // Register Query Handlers
             $queryBus->registerHandler($app->make(GetUserProgressQueryHandler::class));
+            $queryBus->registerHandler($app->make(GetUserDailyGoalsQueryHandler::class));
             
             // Add more query handlers here as needed
             
@@ -62,6 +66,13 @@ class CqrsServiceProvider extends ServiceProvider
                 $app->make(StreakRepositoryInterface::class)
             );
         });
+        
+        $this->app->bind(CreateDailyGoalCommandHandler::class, function ($app) {
+            return new CreateDailyGoalCommandHandler(
+                $app->make(DailyGoalRepositoryInterface::class),
+                $app->make(UserRepositoryInterface::class)
+            );
+        });
 
         // Register Query Handlers with their dependencies
         $this->app->bind(GetUserProgressQueryHandler::class, function ($app) {
@@ -71,6 +82,14 @@ class CqrsServiceProvider extends ServiceProvider
                 $app->make(SkillRepositoryInterface::class),
                 $app->make(StreakRepositoryInterface::class),
                 $app->make(AchievementRepositoryInterface::class)
+            );
+        });
+        
+        $this->app->bind(GetUserDailyGoalsQueryHandler::class, function ($app) {
+            return new GetUserDailyGoalsQueryHandler(
+                $app->make(DailyGoalRepositoryInterface::class),
+                $app->make(UserRepositoryInterface::class),
+                $app->make(SkillRepositoryInterface::class)
             );
         });
     }

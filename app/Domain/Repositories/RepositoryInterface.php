@@ -8,9 +8,17 @@ interface RepositoryInterface
      * Find an entity by its primary key.
      *
      * @param int $id
-     * @return mixed The entity or null if not found
+     * @return mixed
      */
     public function find(int $id);
+
+    /**
+     * Find multiple entities by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array;
 
     /**
      * Get all entities.
@@ -23,7 +31,7 @@ interface RepositoryInterface
      * Save an entity.
      *
      * @param mixed $entity
-     * @return mixed The saved entity
+     * @return mixed
      */
     public function save($entity);
 
