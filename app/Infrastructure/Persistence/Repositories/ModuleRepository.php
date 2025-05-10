@@ -63,13 +63,32 @@ class ModuleRepository implements ModuleRepositoryInterface
     public function all(): array
     {
         try {
+            \Log::debug('ModuleRepository::all() - Beginning execution');
+            
+            // Get raw SQL query for debugging
+            $query = Module::orderBy('order');
+            $sql = $query->toSql();
+            $bindings = $query->getBindings();
+            \Log::debug('ModuleRepository::all() - Query: ' . $sql . ' with bindings: ' . json_encode($bindings));
+            
+            // Count modules directly from DB to bypass any potential model issues
+            $dbCount = \DB::table('modules')->count();
+            \Log::debug('ModuleRepository::all() - Direct DB count: ' . $dbCount);
+            
             // Use standard orderBy for better cross-database compatibility
             $modules = Module::orderBy('order')->get();
+            \Log::debug('ModuleRepository::all() - Retrieved ' . count($modules) . ' modules from Eloquent');
+            
+            // Debug output of retrieved modules
+            foreach ($modules as $index => $module) {
+                \Log::debug("ModuleRepository::all() - Module #{$index}: ID={$module->id}, Name={$module->name}, Order={$module->order}");
+            }
+            
             return $modules ? $modules->all() : [];
         } catch (\Exception $e) {
             // Log the error but return a valid empty array
             // to prevent null being returned
-            \Log::error('Error retrieving modules: ' . $e->getMessage());
+            \Log::error('Error retrieving modules: ' . $e->getMessage() . "\nStack trace: " . $e->getTraceAsString());
             return [];
         }
     }

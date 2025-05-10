@@ -61,12 +61,33 @@ class ModulesController extends Controller
     {
         $userId = Auth::id();
         
-        // Get all modules with their data
-        $modules = $this->moduleRepository->all();
-        
-        // Get user progress using the CQRS query
-        $query = new GetUserProgressQuery($userId);
-        $userProgress = $this->queryBus->dispatch($query);
+        try {
+            // Get all modules with their data - try both methods to ensure we get data
+            \Log::debug('ModulesController: Attempting to fetch modules with all()');
+            $modules = $this->moduleRepository->all();
+            \Log::debug('ModulesController: After all() call, modules count: ' . count($modules));
+            
+            // If all() method returns empty, try the getAllActive method as a fallback
+            if (empty($modules)) {
+                \Log::debug('ModulesController: all() method returned empty array, trying getAllActive()');
+                $modules = $this->moduleRepository->getAllActive();
+                \Log::debug('ModulesController: After getAllActive() call, modules count: ' . count($modules));
+            }
+            
+            // Debug dump of returned modules
+            \Log::debug('ModulesController: Raw modules data: ' . json_encode($modules));
+            
+            // Log the count of modules for debugging
+            \Log::info('ModulesController: Retrieved ' . count($modules) . ' modules');
+            
+            // Get user progress using the CQRS query
+            $query = new GetUserProgressQuery($userId);
+            $userProgress = $this->queryBus->dispatch($query);
+        } catch (\Exception $e) {
+            \Log::error('Error in ModulesController index: ' . $e->getMessage());
+            $modules = [];
+            $userProgress = ['modules' => []];
+        }
         
         // Calculate overall progress across all modules
         $completedModulesCount = 0;

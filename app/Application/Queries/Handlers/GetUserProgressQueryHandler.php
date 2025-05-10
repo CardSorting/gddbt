@@ -87,66 +87,101 @@ class GetUserProgressQueryHandler implements QueryHandlerInterface
             );
         }
 
-        $userId = $query->getUserId();
-        $moduleId = $query->getModuleId();
+        try {
+            $userId = $query->getUserId();
+            $moduleId = $query->getModuleId();
+            
+            \Log::info("GetUserProgressQueryHandler: Processing query for user ID {$userId}" . 
+                       ($moduleId ? " and module ID {$moduleId}" : ""));
 
-        // Get user information
-        $user = $this->userRepository->find($userId);
-        if (!$user) {
-            throw new InvalidArgumentException("User not found: {$userId}");
-        }
-
-        // Get user streak information
-        $streak = $this->streakRepository->findByUser($userId);
-        
-        // Get user achievements
-        $achievements = $this->achievementRepository->getEarnedByUser($userId);
-        
-        // Get module and skill progress data
-        if ($moduleId) {
-            // If a specific module is requested, get detailed data for that module only
-            $module = $this->moduleRepository->find($moduleId);
-            if (!$module) {
-                throw new InvalidArgumentException("Module not found: {$moduleId}");
+            // Get user information
+            $user = $this->userRepository->find($userId);
+            if (!$user) {
+                throw new InvalidArgumentException("User not found: {$userId}");
             }
-            
-            $moduleProgress = $module->getCompletionPercentage($userId);
-            $skills = $this->skillRepository->getSkillsWithUserProgress($userId, $moduleId);
-            
-            $moduleData = [
-                'id' => $module->id,
-                'name' => $module->name,
-                'description' => $module->description,
-                'progress' => $moduleProgress,
-                'skills' => $skills,
-            ];
-        } else {
-            // Otherwise, get summary data for all modules
-            $modules = $this->moduleRepository->getModulesWithUserProgress($userId);
-            $moduleData = $modules;
-        }
 
-        // Prepare response
-        return [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'xp_points' => $user->xp_points,
-                'level' => $user->level,
-            ],
-            'streak' => $streak ? [
-                'current_count' => $streak->current_count,
-                'longest_count' => $streak->longest_count,
-                'is_active_today' => $streak->isActiveToday(),
-                'freeze_count' => $streak->freeze_count,
-            ] : null,
-            'achievements' => [
-                'count' => count($achievements),
-                'recent' => array_slice($achievements, 0, 5), // Get the 5 most recent achievements
-            ],
-            'modules' => $moduleData,
-            'recommended_next' => $this->getRecommendedNextContent($userId),
-        ];
+            // Get user streak information
+            $streak = $this->streakRepository->findByUser($userId);
+            
+            // Get user achievements
+            $achievements = $this->achievementRepository->getEarnedByUser($userId);
+            
+            // Get module and skill progress data
+            if ($moduleId) {
+                // If a specific module is requested, get detailed data for that module only
+                $module = $this->moduleRepository->find($moduleId);
+                if (!$module) {
+                    throw new InvalidArgumentException("Module not found: {$moduleId}");
+                }
+                
+                $moduleProgress = $module->getCompletionPercentage($userId);
+                $skills = $this->skillRepository->getSkillsWithUserProgress($userId, $moduleId);
+                
+                $moduleData = [
+                    'id' => $module->id,
+                    'name' => $module->name,
+                    'description' => $module->description,
+                    'progress' => $moduleProgress,
+                    'skills' => $skills,
+                ];
+            } else {
+                // Otherwise, get summary data for all modules
+                try {
+                    $modules = $this->moduleRepository->getModulesWithUserProgress($userId);
+                    $moduleData = $modules;
+                    \Log::info("GetUserProgressQueryHandler: Retrieved " . count($moduleData) . " modules with progress");
+                } catch (\Exception $e) {
+                    \Log::error("GetUserProgressQueryHandler: Error retrieving modules: " . $e->getMessage());
+                    // Use a fallback approach if getModulesWithUserProgress fails
+                    $moduleData = [];
+                }
+            }
+
+            // Prepare response
+            return [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'xp_points' => $user->xp_points ?? 0,
+                    'level' => $user->level ?? 1,
+                ],
+                'streak' => $streak ? [
+                    'current_count' => $streak->current_count,
+                    'longest_count' => $streak->longest_count,
+                    'is_active_today' => $streak->isActiveToday(),
+                    'freeze_count' => $streak->freeze_count,
+                ] : null,
+                'achievements' => [
+                    'count' => count($achievements),
+                    'recent' => array_slice($achievements, 0, 5), // Get the 5 most recent achievements
+                ],
+                'modules' => $moduleData,
+                'recommended_next' => $this->getRecommendedNextContent($userId),
+            ];
+        } catch (\Exception $e) {
+            \Log::error("GetUserProgressQueryHandler: Unhandled exception: " . $e->getMessage() . 
+                       "\nStack trace: " . $e->getTraceAsString());
+            
+            // Return minimal data structure to prevent frontend errors
+            return [
+                'user' => [
+                    'id' => $userId,
+                    'name' => 'User',
+                    'xp_points' => 0,
+                    'level' => 1,
+                ],
+                'streak' => null,
+                'achievements' => [
+                    'count' => 0,
+                    'recent' => [],
+                ],
+                'modules' => [],
+                'recommended_next' => [
+                    'lessons' => [],
+                    'skills' => [],
+                ],
+            ];
+        }
     }
 
     /**
