@@ -18,6 +18,17 @@ class LessonRepository implements LessonRepositoryInterface
     {
         return Lesson::find($id);
     }
+    
+    /**
+     * Find multiple lessons by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return Lesson::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find a lesson by its slug.

@@ -19,6 +19,17 @@ class AchievementRepository implements AchievementRepositoryInterface
     {
         return Achievement::find($id);
     }
+    
+    /**
+     * Find multiple achievements by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return Achievement::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find an achievement by its slug.

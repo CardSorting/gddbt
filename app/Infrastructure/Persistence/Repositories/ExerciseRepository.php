@@ -18,6 +18,17 @@ class ExerciseRepository implements ExerciseRepositoryInterface
     {
         return Exercise::find($id);
     }
+    
+    /**
+     * Find multiple exercises by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return Exercise::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Get all exercises.

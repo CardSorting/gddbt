@@ -18,6 +18,17 @@ class ModuleRepository implements ModuleRepositoryInterface
     {
         return Module::find($id);
     }
+    
+    /**
+     * Find multiple modules by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return Module::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find a module by its slug.

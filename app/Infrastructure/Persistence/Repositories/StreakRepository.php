@@ -20,6 +20,17 @@ class StreakRepository implements StreakRepositoryInterface
     {
         return Streak::find($id);
     }
+    
+    /**
+     * Find multiple streaks by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return Streak::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find a user's streak.

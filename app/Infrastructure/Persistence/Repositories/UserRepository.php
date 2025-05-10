@@ -18,6 +18,17 @@ class UserRepository implements UserRepositoryInterface
     {
         return User::find($id);
     }
+    
+    /**
+     * Find multiple users by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return User::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find a user by email.

@@ -19,6 +19,17 @@ class DailyGoalRepository implements DailyGoalRepositoryInterface
     {
         return DailyGoal::find($id);
     }
+    
+    /**
+     * Find multiple daily goals by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return DailyGoal::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find a user's daily goal by date.

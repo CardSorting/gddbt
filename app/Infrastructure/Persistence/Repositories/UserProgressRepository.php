@@ -18,6 +18,17 @@ class UserProgressRepository implements UserProgressRepositoryInterface
     {
         return UserProgress::find($id);
     }
+    
+    /**
+     * Find multiple user progress records by their primary keys.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function findMany(array $ids): array
+    {
+        return UserProgress::whereIn('id', $ids)->get()->all();
+    }
 
     /**
      * Find a user progress by user ID and skill ID.
