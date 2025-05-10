@@ -48,7 +48,15 @@ class ModuleRepository implements ModuleRepositoryInterface
      */
     public function all(): array
     {
-        return Module::orderBy('order')->get()->all();
+        try {
+            $modules = Module::orderBy('order')->get();
+            return $modules ? $modules->all() : [];
+        } catch (\Exception $e) {
+            // Log the error but return a valid empty array
+            // to prevent null being returned
+            \Log::error('Error retrieving modules: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**

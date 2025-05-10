@@ -33,8 +33,23 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // Get the four core DBT modules for the homepage and ensure we always have an array
-        $modules = $this->moduleRepository->all() ?? [];
+        // Get the four core DBT modules for the homepage and ensure we always have a valid array
+        $modules = [];
+        
+        if ($this->moduleRepository) {
+            $allModules = $this->moduleRepository->all();
+            
+            // Make sure we have a valid array (could be null if repository method returns null)
+            if (is_array($allModules)) {
+                // Ensure there are no null values in the modules array
+                $modules = array_filter($allModules, function($module) {
+                    return $module !== null;
+                });
+                
+                // Convert to indexed array
+                $modules = array_values($modules);
+            }
+        }
         
         // Get some statistics for the landing page
         $userCount = User::count();

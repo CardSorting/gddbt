@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 
-    <title>@yield('title', 'DBT Learning Platform')</title>
-    <meta name="description" content="@yield('meta_description', 'A gamified platform for learning Dialectical Behavior Therapy (DBT) skills.')">
+    <title><?php echo $__env->yieldContent('title', 'DBT Learning Platform'); ?></title>
+    <meta name="description" content="<?php echo $__env->yieldContent('meta_description', 'A gamified platform for learning Dialectical Behavior Therapy (DBT) skills.'); ?>">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,14 +125,14 @@
         }
         
         /* Custom styles for different sections can be added here */
-        @yield('custom_css')
+        <?php echo $__env->yieldContent('custom_css'); ?>
     </style>
 </head>
 <body>
     <div id="app">
         <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
+                <a class="navbar-brand" href="<?php echo e(url('/')); ?>">
                     DBT<span class="text-primary">Path</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -141,52 +141,53 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home') }}">Home</a>
+                            <a class="nav-link" href="<?php echo e(route('home')); ?>">Home</a>
                         </li>
-                        @if(auth()->guest())
+                        <?php if(auth()->guest()): ?>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">Login</a>
+                                <a class="nav-link" href="<?php echo e(route('login')); ?>">Login</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link btn btn-primary text-white ms-2 px-4" href="{{ route('register') }}">Register</a>
+                                <a class="nav-link btn btn-primary text-white ms-2 px-4" href="<?php echo e(route('register')); ?>">Register</a>
                             </li>
-                        @else
+                        <?php else: ?>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('modules.index') }}">Modules</a>
+                                <a class="nav-link" href="<?php echo e(route('dashboard')); ?>">Dashboard</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('daily-goals.index') }}">Daily Goals</a>
+                                <a class="nav-link" href="<?php echo e(route('modules.index')); ?>">Modules</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="<?php echo e(route('daily-goals.index')); ?>">Daily Goals</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    {{ auth()->user()->name }}
+                                    <?php echo e(auth()->user()->name); ?>
+
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <li><a class="dropdown-item" href="#">My Profile</a></li>
                                     <li><a class="dropdown-item" href="#">Settings</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
+                                        <a class="dropdown-item" href="<?php echo e(route('logout')); ?>"
                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                             Logout
                                         </a>
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                            @csrf
+                                        <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="d-none">
+                                            <?php echo csrf_field(); ?>
                                         </form>
                                     </li>
                                 </ul>
                             </li>
-                        @endguest
+                        <?php endif; ?>
                     </ul>
                 </div>
             </div>
         </nav>
 
         <main>
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </main>
 
         <footer class="pt-5 pb-4">
@@ -235,7 +236,7 @@
                 <div class="row mt-4">
                     <div class="col-12">
                         <hr class="border-secondary">
-                        <p class="text-center text-light mb-0">© {{ date('Y') }} DBTPath. All rights reserved.</p>
+                        <p class="text-center text-light mb-0">© <?php echo e(date('Y')); ?> DBTPath. All rights reserved.</p>
                     </div>
                 </div>
             </div>
@@ -244,6 +245,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    @yield('scripts')
+    <?php echo $__env->yieldContent('scripts'); ?>
 </body>
 </html>
+<?php /**PATH /Users/bozoegg/Desktop/gddbt/resources/views/layouts/app.blade.php ENDPATH**/ ?>

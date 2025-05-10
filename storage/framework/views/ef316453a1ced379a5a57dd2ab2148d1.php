@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'DBTPath - Learn Dialectical Behavior Therapy Skills'); ?>
+<?php $__env->startSection('meta_description', 'Master DBT skills with our gamified learning platform. Build daily practice habits, track progress, and connect with others on your DBT journey.'); ?>
 
-@section('title', 'DBTPath - Learn Dialectical Behavior Therapy Skills')
-@section('meta_description', 'Master DBT skills with our gamified learning platform. Build daily practice habits, track progress, and connect with others on your DBT journey.')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="container">
@@ -12,7 +10,7 @@
                     <h1 class="display-4 fw-bold mb-4">Your Journey to Emotional Wellness Starts Here</h1>
                     <p class="lead mb-4">Master Dialectical Behavior Therapy skills through a gamified learning experience. Build daily practice habits, track your progress, and connect with others on the same path.</p>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ route('register') }}" class="btn btn-light btn-lg px-4 me-md-2">Get Started Free</a>
+                        <a href="<?php echo e(route('register')); ?>" class="btn btn-light btn-lg px-4 me-md-2">Get Started Free</a>
                         <a href="#features" class="btn btn-outline-light btn-lg px-4">Learn More</a>
                     </div>
                 </div>
@@ -29,7 +27,7 @@
             <div class="row g-4 justify-content-center text-center">
                 <div class="col-md-4">
                     <div class="p-4 bg-white rounded-4 shadow-sm">
-                        <h2 class="fw-bold text-primary mb-0">{{ number_format($userCount) }}+</h2>
+                        <h2 class="fw-bold text-primary mb-0"><?php echo e(number_format($userCount)); ?>+</h2>
                         <p class="text-muted mb-0">Active Learners</p>
                     </div>
                 </div>
@@ -60,13 +58,13 @@
                 </div>
             </div>
             <div class="row g-4">
-                @if(!empty($modules) && (is_array($modules) || $modules instanceof \Traversable))
-                    @foreach($modules as $index => $module)
-                        @if($module)
+                <?php if(!empty($modules) && (is_array($modules) || $modules instanceof \Traversable)): ?>
+                    <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $module): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php if($module): ?>
                         <div class="col-md-6 col-lg-3">
                             <div class="card h-100 border-0 feature-card">
                                 <div class="card-body p-4">
-                                    @php
+                                    <?php
                                         $colorClass = 'primary';
                                         if ($index === 1) {
                                             $colorClass = 'secondary';
@@ -75,35 +73,35 @@
                                         } elseif ($index === 3) {
                                             $colorClass = 'warning';
                                         }
-                                    @endphp
-                                    <div class="rounded-circle bg-{{ $colorClass }} bg-opacity-10 p-3 d-inline-flex mb-3">
-                                        <i class="bi bi-{{ $module->icon ?? 'star' }} fs-3 text-{{ $colorClass }}"></i>
+                                    ?>
+                                    <div class="rounded-circle bg-<?php echo e($colorClass); ?> bg-opacity-10 p-3 d-inline-flex mb-3">
+                                        <i class="bi bi-<?php echo e($module->icon ?? 'star'); ?> fs-3 text-<?php echo e($colorClass); ?>"></i>
                                     </div>
-                                    <h4 class="card-title">{{ $module->name ?? 'Module Name' }}</h4>
-                                    <p class="card-text text-muted">{{ $module->description ?? 'Module description goes here' }}</p>
-                                    <a href="#" class="btn btn-sm btn-outline-{{ $colorClass }} mt-2">Learn More</a>
+                                    <h4 class="card-title"><?php echo e($module->name ?? 'Module Name'); ?></h4>
+                                    <p class="card-text text-muted"><?php echo e($module->description ?? 'Module description goes here'); ?></p>
+                                    <a href="#" class="btn btn-sm btn-outline-<?php echo e($colorClass); ?> mt-2">Learn More</a>
                                 </div>
                             </div>
                         </div>
-                        @endif
-                    @endforeach
-                @else
+                        <?php endif; ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php else: ?>
                     <!-- Fallback content when no modules are available -->
-                    @for($i = 0; $i < 4; $i++)
+                    <?php for($i = 0; $i < 4; $i++): ?>
                         <div class="col-md-6 col-lg-3">
                             <div class="card h-100 border-0 feature-card">
                                 <div class="card-body p-4">
-                                    <div class="rounded-circle bg-{{ $i == 0 ? 'primary' : ($i == 1 ? 'secondary' : ($i == 2 ? 'accent' : 'warning')) }} bg-opacity-10 p-3 d-inline-flex mb-3">
-                                        <i class="bi bi-star fs-3 text-{{ $i == 0 ? 'primary' : ($i == 1 ? 'secondary' : ($i == 2 ? 'accent' : 'warning')) }}"></i>
+                                    <div class="rounded-circle bg-<?php echo e($i == 0 ? 'primary' : ($i == 1 ? 'secondary' : ($i == 2 ? 'accent' : 'warning'))); ?> bg-opacity-10 p-3 d-inline-flex mb-3">
+                                        <i class="bi bi-star fs-3 text-<?php echo e($i == 0 ? 'primary' : ($i == 1 ? 'secondary' : ($i == 2 ? 'accent' : 'warning'))); ?>"></i>
                                     </div>
-                                    <h4 class="card-title">Example Module {{ $i + 1 }}</h4>
+                                    <h4 class="card-title">Example Module <?php echo e($i + 1); ?></h4>
                                     <p class="card-text text-muted">This is a placeholder for a DBT module that will help you build skills for emotional wellness.</p>
-                                    <a href="#" class="btn btn-sm btn-outline-{{ $i == 0 ? 'primary' : ($i == 1 ? 'secondary' : ($i == 2 ? 'accent' : 'warning')) }} mt-2">Learn More</a>
+                                    <a href="#" class="btn btn-sm btn-outline-<?php echo e($i == 0 ? 'primary' : ($i == 1 ? 'secondary' : ($i == 2 ? 'accent' : 'warning'))); ?> mt-2">Learn More</a>
                                 </div>
                             </div>
                         </div>
-                    @endfor
-                @endif
+                    <?php endfor; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -319,11 +317,13 @@
                     <h2 class="display-5 fw-bold mb-4">Start Your DBT Journey Today</h2>
                     <p class="lead mb-4">Join thousands of others who are learning to master their emotions and improve their lives with DBT skills.</p>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <a href="{{ route('register') }}" class="btn btn-light btn-lg px-5">Sign Up Free</a>
+                        <a href="<?php echo e(route('register')); ?>" class="btn btn-light btn-lg px-5">Sign Up Free</a>
                         <a href="#" class="btn btn-outline-light btn-lg px-5">Learn More</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /Users/bozoegg/Desktop/gddbt/resources/views/home.blade.php ENDPATH**/ ?>
