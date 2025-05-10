@@ -56,3 +56,7 @@ Route::middleware(['auth'])->group(function () {
         return view('daily-goals.create');
     })->name('daily-goals.create');
 });
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
