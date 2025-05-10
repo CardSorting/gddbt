@@ -132,6 +132,12 @@ class ModulesController extends Controller
                 $completedModulesCount++;
             }
             
+            // Set the status for the module
+            // First module should always be unlocked, others should be locked if no progress
+            $moduleStatus = $moduleProgress >= 100 ? 'completed' : 
+                           ($moduleProgress > 0 ? 'in_progress' : 
+                           ($module->order == 1 ? 'in_progress' : 'locked'));
+                           
             // Add module data to array
             $moduleData[] = [
                 'id' => $module->id,
@@ -142,7 +148,10 @@ class ModulesController extends Controller
                 'completed_lessons_count' => $completedLessonsCount,
                 'total_lessons_count' => $totalLessonsCount,
                 'last_activity_at' => $lastActivityDate,
-                'status' => $moduleProgress >= 100 ? 'completed' : ($moduleProgress > 0 ? 'in_progress' : 'locked')
+                'status' => $moduleStatus,
+                'color_code' => $module->color_code,
+                'icon' => $module->icon,
+                'order' => $module->order
             ];
             
             // Add to overall progress

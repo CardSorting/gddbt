@@ -33,8 +33,8 @@
     <div class="row g-4">
         <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $module): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body p-4">
+                <div class="card h-100 border-0 shadow-sm" style="border-top: 4px solid <?php echo e($module['color_code'] ?? '#ccc'); ?> !important;">
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <?php if($module['status'] == 'completed'): ?>
                                 <span class="badge bg-success px-3 py-2">Completed</span>
@@ -48,27 +48,29 @@
                             <?php endif; ?>
                         </div>
                         <h4 class="card-title"><?php echo e($module['name']); ?></h4>
-                        <p class="card-text text-muted"><?php echo e($module['description']); ?></p>
-                        <div class="progress mb-3" style="height: 8px;">
-                            <div class="progress-bar 
-                                <?php if($module['status'] == 'completed'): ?> bg-success 
-                                <?php elseif($module['status'] == 'in_progress'): ?> bg-warning 
-                                <?php else: ?> bg-secondary <?php endif; ?>" 
-                                role="progressbar" 
-                                style="width: <?php echo e($module['completion_percentage']); ?>%;" 
-                                aria-valuenow="<?php echo e($module['completion_percentage']); ?>" 
-                                aria-valuemin="0" 
-                                aria-valuemax="100"></div>
-                        </div>
-                        <small class="text-muted"><?php echo e($module['completed_lessons_count']); ?>/<?php echo e($module['total_lessons_count']); ?> lessons completed</small>
-                        <div class="mt-4">
-                            <?php if($module['status'] == 'completed'): ?>
-                                <a href="<?php echo e(route('modules.show', $module['slug'])); ?>" class="btn btn-outline-primary w-100">Review Module</a>
-                            <?php elseif($module['status'] == 'in_progress'): ?>
-                                <a href="<?php echo e(route('modules.show', $module['slug'])); ?>" class="btn btn-primary w-100">Continue Module</a>
-                            <?php else: ?>
-                                <button class="btn btn-secondary w-100" disabled>Complete Previous Module</button>
-                            <?php endif; ?>
+                        <p class="card-text text-muted" style="min-height: 75px; flex-grow: 1;"><?php echo e(Str::limit($module['description'], 120)); ?></p>
+                        <div class="mt-auto">
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar 
+                                    <?php if($module['status'] == 'completed'): ?> bg-success 
+                                    <?php elseif($module['status'] == 'in_progress'): ?> bg-warning 
+                                    <?php else: ?> bg-secondary <?php endif; ?>" 
+                                    role="progressbar" 
+                                    style="width: <?php echo e($module['completion_percentage']); ?>%;" 
+                                    aria-valuenow="<?php echo e($module['completion_percentage']); ?>" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted d-block mb-3"><?php echo e($module['completed_lessons_count']); ?>/<?php echo e($module['total_lessons_count']); ?> lessons completed</small>
+                            <div>
+                                <?php if($module['status'] == 'completed'): ?>
+                                    <a href="<?php echo e(route('modules.show', $module['slug'])); ?>" class="btn btn-outline-primary w-100">Review Module</a>
+                                <?php elseif($module['status'] == 'in_progress'): ?>
+                                    <a href="<?php echo e(route('modules.show', $module['slug'])); ?>" class="btn btn-primary w-100">Continue Module</a>
+                                <?php else: ?>
+                                    <button class="btn btn-secondary w-100" disabled>Complete Previous Module</button>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
