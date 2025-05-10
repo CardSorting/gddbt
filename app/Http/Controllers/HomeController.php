@@ -33,8 +33,8 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // Get the four core DBT modules for the homepage
-        $modules = $this->moduleRepository->all();
+        // Get the four core DBT modules for the homepage and ensure we always have an array
+        $modules = $this->moduleRepository->all() ?? [];
         
         // Get some statistics for the landing page
         $userCount = User::count();
